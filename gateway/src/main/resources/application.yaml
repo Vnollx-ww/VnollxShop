@@ -4,25 +4,67 @@ spring:
   application:
     name: gateway-service # 服务名称 表示这个服务
   cloud:
+
     nacos:
       #指定 Nacos 服务器的地址，这里是本地运行的 Nacos 服务
       serverAddr: 127.0.0.1:8848
+
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # 开启服务发现自动路由
+          lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10   # 每秒允许的请求数
+                redis-rate-limiter.burstCapacity: 20   # 最大突发请求数
+                redis-rate-limiter.requestedTokens: 1  # 每个请求消耗的令牌数
+            - name: StripPrefix=0
+            - name: AuthFilter
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - name: StripPrefix=1
+            - name: AuthFilter
+            - name: Retry
+              args:
+                retries: 3
+                series: SERVER_ERROR
+
+        - id: fallback-route
+          uri: lb://auth-service
+          predicates:
+            - Path=/fallback/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /fallback/(?<segment>.*)
+                replacement: /${segment}
+    loadbalancer:
+      configurations: default
+
   config:
     import:
       #含义：从 Nacos 配置中心加载与当前应用名称（spring.application.name）匹配的配置文件。
       #optional 如果找不到该文件则不报错
       - optional:nacos:${spring.application.name}.yaml
-dubbo:
-  application:
-    serialize-check-status: DISABLE
-    parameters:
-      dubbo.application.serialize-check-status: DISABLE
-    name: ${spring.application.name} # 引用Spring的服务名称
-    qos-enable: false  # 禁用 QOS 服务
-  protocol:
-    name: dubbo
-    port: 20880
-  registry:
-    address: nacos://${spring.cloud.nacos.serverAddr} # 引用Spring的Nacos地址
-  scan:
-    base-packages: com.example.gateway.service
+      - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+    com.example.gateway: TRACE
+
+
+

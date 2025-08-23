@@ -1,4 +1,4 @@
-package com.example.common.api.user;
+package com.example.user.service;
 
 import com.example.common.api.user.dto.RegisterDTO;
 import com.example.common.api.user.dto.UpdatePasswordDTO;

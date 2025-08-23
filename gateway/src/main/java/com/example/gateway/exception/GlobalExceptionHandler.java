@@ -1,4 +1,4 @@
-package com.example.gateway;
+package com.example.gateway.exception;
 
 import com.example.common.exception.BusinessException;
 import com.example.common.result.Result;

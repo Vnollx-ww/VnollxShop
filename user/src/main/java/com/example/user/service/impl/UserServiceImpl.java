@@ -1,8 +1,7 @@
-package com.example.user.service;
+package com.example.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.common.api.user.UserService;
 import com.example.common.api.user.dto.RegisterDTO;
 import com.example.common.api.user.dto.UpdatePasswordDTO;
 import com.example.common.api.user.dto.UpdateUserInfoDTO;
@@ -11,10 +10,11 @@ import com.example.common.exception.BusinessException;
 import com.example.common.utils.BCryptSalt;
 import com.example.user.entity.User;
 import com.example.user.mapper.UserMapper;
-import org.apache.dubbo.config.annotation.DubboService;
+import com.example.user.service.UserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
 
-@DubboService
+@Service
 public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements UserService {
     @Override
     public UserInfoVO getUserInfoById(Long id) {
@@ -77,7 +77,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
             throw new BusinessException("邮箱不存在");
         }
         UserInfoVO vo=new UserInfoVO();
-        BeanUtils.copyProperties(user,vo,"password","balance","email");
+        BeanUtils.copyProperties(user,vo,"balance","email");
+        System.out.println(vo.getId());
+        System.out.println(vo.getName());
+        System.out.println(vo.getPassword());
         return vo;
     }
 }

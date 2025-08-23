@@ -1,4 +1,4 @@
-package com.example.common.api.auth;
+package com.example.auth.service;
 
 import com.example.common.api.auth.dto.LoginDTO;
 import com.example.common.api.auth.dto.LogoutDTO;

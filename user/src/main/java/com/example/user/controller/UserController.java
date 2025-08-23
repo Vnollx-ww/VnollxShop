@@ -1,24 +1,27 @@
-package com.example.gateway.controller;
+package com.example.user.controller;
 
-import com.example.common.api.user.UserService;
 import com.example.common.api.user.dto.RegisterDTO;
 import com.example.common.api.user.dto.UpdatePasswordDTO;
 import com.example.common.api.user.dto.UpdateUserInfoDTO;
 import com.example.common.api.user.vo.UserInfoVO;
 import com.example.common.result.Result;
-
+import com.example.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
-    @DubboReference
-    private UserService userService;
-    @GetMapping("/info")
-    public Result<UserInfoVO> getUserInfo(@ModelAttribute  String id){
+    private final UserService userService;
+    @GetMapping("/info/id")
+    public Result<UserInfoVO> getUserInfoById(@RequestParam String id){
         UserInfoVO vo=userService.getUserInfoById(Long.parseLong(id));
+        return Result.success(vo);
+    }
+    @GetMapping("/info/email")
+    public Result<UserInfoVO> getUserInfoByEmail(@RequestParam String email){
+        UserInfoVO vo=userService.getUserInfoByEmail(email);
         return Result.success(vo);
     }
     @PutMapping("/update/info")

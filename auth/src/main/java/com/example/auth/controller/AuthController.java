@@ -1,20 +1,22 @@
-package com.example.gateway.controller;
+package com.example.auth.controller;
 
 
-
-import com.example.common.api.auth.AuthService;
+import cn.dev33.satoken.stp.StpUtil;
+import com.example.auth.service.AuthService;
 import com.example.common.api.auth.dto.LoginDTO;
 import com.example.common.api.auth.dto.LogoutDTO;
 import com.example.common.result.Result;
-import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-
+@RequiredArgsConstructor
 public class AuthController {
-    @DubboReference
-    private AuthService authService;
+    private final AuthService authService;
 
     @PostMapping("/login")
     public Result<String> login(@ModelAttribute  LoginDTO dto){

@@ -15,17 +15,4 @@ spring:
       - optional:nacos:sa-token.yaml?group=DEFAULT_GROUP  # 显式加载 sa-token.yaml
       - optional:nacos:mysql.yaml?group=DEFAULT_GROUP  # 显式加载 mysql.yaml
       - optional:nacos:redis.yaml?group=DEFAULT_GROUP  # 显式加载 redis.yaml
-dubbo:
-  application:
-    serialize-check-status: DISABLE
-    parameters:
-      dubbo.application.serialize-check-status: DISABLE
-    name: ${spring.application.name} # 引用Spring的服务名称
-    qos-enable: false  # 禁用 QOS 服务
-  protocol:
-    name: dubbo
-    port: 20883
-  registry:
-    address: nacos://${spring.cloud.nacos.serverAddr} # 引用Spring的Nacos地址
-  scan:
-    base-packages: com.example.auth.service
+      - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
