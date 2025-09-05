@@ -1,29 +1,49 @@
 package com.example.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.common.api.user.dto.RegisterDTO;
-import com.example.common.api.user.dto.UpdatePasswordDTO;
-import com.example.common.api.user.dto.UpdateUserInfoDTO;
-import com.example.common.api.user.vo.UserInfoVO;
+import com.example.common.model.user.dto.LoginDTO;
+import com.example.common.model.user.dto.LogoutDTO;
+import com.example.common.model.user.dto.RegisterDTO;
+import com.example.common.model.user.dto.UpdatePasswordDTO;
+import com.example.common.model.user.dto.UpdateUserInfoDTO;
+import com.example.common.model.user.vo.UserInfoVO;
 import com.example.common.exception.BusinessException;
 import com.example.common.utils.BCryptSalt;
+import com.example.common.utils.JwtToken;
 import com.example.user.entity.User;
 import com.example.user.mapper.UserMapper;
 import com.example.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements UserService {
     @Override
-    public UserInfoVO getUserInfoById(Long id) {
-        User user=this.getById(id);
+    public UserInfoVO getUserInfoById(Long uid) {
+        User user=this.getById(uid);
         if (user==null){
-            throw new BusinessException("用户id不存在");
+            throw new BusinessException("用户Id不存在");
         }
         UserInfoVO vo=new UserInfoVO();
-        BeanUtils.copyProperties(user,vo,"password","balance","email","salt");
+        BeanUtils.copyProperties(user,vo);
+        return vo;
+    }
+
+    @Override
+    public UserInfoVO getUserInfoByEmail(String email) {
+        QueryWrapper<User> wrapper=new QueryWrapper<>();
+        wrapper.eq("email",email);
+        User user=this.getOne(wrapper);
+        if (user==null){
+            throw new BusinessException("邮箱地址不存在");
+        }
+        UserInfoVO vo=new UserInfoVO();
+        BeanUtils.copyProperties(user,vo);
         return vo;
     }
 
@@ -54,33 +74,56 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     }
 
     @Override
-    public void register(RegisterDTO dto) throws BusinessException {
-        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("email",dto.getEmail());
-        if (this.count(queryWrapper)>0){
-            throw new BusinessException("邮箱已存在");
+    public void register(RegisterDTO dto){
+        QueryWrapper<User> wrapper=new QueryWrapper<>();
+        wrapper.eq("email",dto.getEmail());
+        User user=this.getOne(wrapper);
+        if (user!=null){
+            throw new BusinessException("邮箱地址已存在");
         }
-        User user=new User();
+        user=new User();
         user.setSalt(BCryptSalt.generateSalt());
         user.setName(dto.getName());
         user.setPassword(BCryptSalt.hashPasswordWithSalt(dto.getPassword(),user.getSalt()));
         user.setEmail(dto.getEmail());
+
         this.save(user);
     }
 
     @Override
-    public UserInfoVO getUserInfoByEmail(String email) {
-        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("email",email);
-        User user=this.getOne(queryWrapper);
+    public String login(LoginDTO dto)  {
+        QueryWrapper<User> wrapper=new QueryWrapper<>();
+        wrapper.eq("email",dto.getEmail());
+        User user=this.getOne(wrapper);
         if (user==null){
             throw new BusinessException("邮箱不存在");
         }
-        UserInfoVO vo=new UserInfoVO();
-        BeanUtils.copyProperties(user,vo,"balance","email");
-        System.out.println(vo.getId());
-        System.out.println(vo.getName());
-        System.out.println(vo.getPassword());
-        return vo;
+        if (!BCryptSalt.verifyPassword(dto.getPassword(),user.getPassword(),user.getSalt())){
+            throw new BusinessException("密码错误，请重试");
+        }
+        return JwtToken.generateToken(String.valueOf(user.getId()),"");
+    }
+
+    @Override
+    public void logout(LogoutDTO dto)  {
+
+    }
+
+    @Override
+    public Double getBalance(Long uid) {
+        User user=this.getById(uid);
+        if (user==null){
+            throw new BusinessException("用户不存在");
+        }
+        return user.getBalance();
+    }
+
+    @Override
+    public void updateBalance(Long uid, Double cost) {
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, uid)
+                .setSql("balance = balance + " + cost);
+
+        this.update(null, wrapper);
     }
 }

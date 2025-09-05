@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.product.mapper.ProductMapper">
+    <update id="batchDeductStock">
+        UPDATE product
+        SET stock = stock - CASE
+        <foreach collection="list" item="item">
+            WHEN id = #{item.left} THEN #{item.right}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.left}
+        </foreach>
+        AND (
+        <foreach collection="list" item="item" separator=" OR ">
+            (id = #{item.left} AND stock >= #{item.right})
+        </foreach>
+        )
+    </update>
+    <select id="lockProducts" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM product
+        WHERE id IN
+        <foreach item="id" collection="productIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY id ASC
+        FOR UPDATE
+    </select>
+</mapper>

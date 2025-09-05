@@ -15,3 +15,9 @@ spring:
       - optional:nacos:mysql.yaml?group=DEFAULT_GROUP  # 显式加载 mysql.yaml
       - optional:nacos:redis.yaml?group=DEFAULT_GROUP  # 显式加载 redis.yaml
       - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+  configuration:
+    default-executor-type: batch # 开启批量操作

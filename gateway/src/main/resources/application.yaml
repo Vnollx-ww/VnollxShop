@@ -15,40 +15,85 @@ spring:
           enabled: true  # 开启服务发现自动路由
           lower-case-service-id: true
       routes:
-        - id: auth-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/auth/**
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10   # 每秒允许的请求数
-                redis-rate-limiter.burstCapacity: 20   # 最大突发请求数
-                redis-rate-limiter.requestedTokens: 1  # 每个请求消耗的令牌数
-            - name: StripPrefix=0
-            - name: AuthFilter
-
+        # 用户服务路由 - 需要认证
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/users/**
+            - Path=/api/user/**
           filters:
-            - name: StripPrefix=1
-            - name: AuthFilter
+
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+                redis-rate-limiter.requestedTokens: 1
             - name: Retry
               args:
                 retries: 3
                 series: SERVER_ERROR
 
-        - id: fallback-route
-          uri: lb://auth-service
+        # 产品服务路由 - 需要认证
+        - id: product-service
+          uri: lb://product-service
           predicates:
-            - Path=/fallback/**
+            - Path=/api/product/**
           filters:
-            - name: RewritePath
+
+            - name: RequestRateLimiter
               args:
-                regexp: /fallback/(?<segment>.*)
-                replacement: /${segment}
+                redis-rate-limiter.replenishRate: 25
+                redis-rate-limiter.burstCapacity: 50
+                redis-rate-limiter.requestedTokens: 1
+
+        # 用户服务路由 - 需要认证
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/order/**
+          filters:
+
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+                redis-rate-limiter.requestedTokens: 1
+            - name: Retry
+              args:
+                retries: 3
+                series: SERVER_ERROR
+        - id: card-service
+          uri: lb://card-service
+          predicates:
+            - Path=/api/card/**
+          filters:
+
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+                redis-rate-limiter.requestedTokens: 1
+            - name: Retry
+              args:
+                retries: 3
+                series: SERVER_ERROR
+
+        # 健康检查路由 - 直接放行
+        - id: health-check
+          uri: lb://gateway-service
+          predicates:
+            - Path=/actuator/**
+
+
+        # 默认路由 - 处理未匹配的请求
+          #- id: default-route
+          #uri: lb://auth-service
+            #predicates:
+            #- Path=/**
+            #filters:
+              #- name: RewritePath
+              #args:
+              #regexp: /(.*)
+            #replacement: /api/auth/fallback/$1
     loadbalancer:
       configurations: default
 
@@ -58,11 +103,13 @@ spring:
       #optional 如果找不到该文件则不报错
       - optional:nacos:${spring.application.name}.yaml
       - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
+      - optional:nacos:redis.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
 
 # 日志配置
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+    org.springframework.data.redis: DEBUG                     # Redis操作日志
     reactor.netty: DEBUG
     com.example.gateway: TRACE
 

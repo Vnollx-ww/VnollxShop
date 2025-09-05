@@ -1,0 +1,23 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: card-service # 服务名称 表示这个服务
+  cloud:
+    nacos:
+      #指定 Nacos 服务器的地址，这里是本地运行的 Nacos 服务
+      serverAddr: 127.0.0.1:8848
+  config:
+    import:
+      #含义：从 Nacos 配置中心加载与当前应用名称（spring.application.name）匹配的配置文件。
+      #optional 如果找不到该文件则不报错
+      - optional:nacos:${spring.application.name}.yaml
+      - optional:nacos:mysql.yaml?group=DEFAULT_GROUP  # 显式加载 mysql.yaml
+      - optional:nacos:redis.yaml?group=DEFAULT_GROUP  # 显式加载 redis.yaml
+      - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+  configuration:
+    default-executor-type: batch # 开启批量操作
