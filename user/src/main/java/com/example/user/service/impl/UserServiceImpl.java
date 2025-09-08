@@ -4,11 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.common.model.user.dto.LoginDTO;
-import com.example.common.model.user.dto.LogoutDTO;
-import com.example.common.model.user.dto.RegisterDTO;
-import com.example.common.model.user.dto.UpdatePasswordDTO;
-import com.example.common.model.user.dto.UpdateUserInfoDTO;
+import com.example.common.model.user.dto.*;
 import com.example.common.model.user.vo.UserInfoVO;
 import com.example.common.exception.BusinessException;
 import com.example.common.utils.BCryptSalt;
@@ -119,10 +115,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     }
 
     @Override
-    public void updateBalance(Long uid, Double cost) {
+    public void updateBalance(UpdateBalanceDTO dto) {
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(User::getId, uid)
-                .setSql("balance = balance + " + cost);
+        wrapper.eq(User::getId, Long.parseLong(dto.getUid()))
+                .setSql("balance = balance + " + dto.getCost());
 
         this.update(null, wrapper);
     }

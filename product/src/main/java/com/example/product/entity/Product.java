@@ -23,5 +23,5 @@ public class Product {
     private Long scoreCount;//评分人数
     private Long sales;//销量
     @TableField(exist = false)  // 明确表示这不是数据库字段
-    private boolean isLike;
+    private Boolean isLike;
 }

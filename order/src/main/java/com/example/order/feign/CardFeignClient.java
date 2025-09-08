@@ -1,4 +1,4 @@
-package com.example.common.feign;
+package com.example.order.feign;
 
 import org.springframework.cloud.openfeign.FeignClient;
 

@@ -1,4 +1,4 @@
-package com.example.common.feign;
+package com.example.card.feign;
 
 import com.example.common.model.user.dto.*;
 import com.example.common.model.user.vo.UserInfoVO;
@@ -24,5 +24,5 @@ public interface UserFeignClient {
     @GetMapping("/get-balance")
     Double getBalance(@RequestParam Long uid);
     @PutMapping("/update/balance")
-    void updateBalance(@RequestBody Long uid,@RequestBody Double cost);
+    void updateBalance(@ModelAttribute UpdateBalanceDTO dto);
 }

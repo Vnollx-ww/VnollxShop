@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+
 import com.example.common.model.product.form.ProductForm;
 import com.example.common.model.product.vo.ProductInfoVO;
 import com.example.common.exception.BusinessException;
@@ -26,11 +27,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> implements ProductService {
-    private final UserFeignClient userFeignClient;
-    private final ProductLikeService productLikeService;
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private final ProductLikeService productLikeService;
     @Override
-    public ProductInfoVO getProductInfo( Long pid) {
+    public ProductInfoVO getProductInfo( Long uid,Long pid) {
         Product product=this.getById(pid);
         if (product==null){
             throw new BusinessException("商品不存在");
@@ -43,6 +43,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
         }
         ProductInfoVO vo=new ProductInfoVO();
         BeanUtils.copyProperties(product,vo);
+        vo.setIsLike(productLikeService.judgeIsLike(uid,pid));
+
         return vo;
     }
 

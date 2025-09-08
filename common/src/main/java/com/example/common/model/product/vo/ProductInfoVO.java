@@ -14,7 +14,7 @@ public class ProductInfoVO {
     private String introduce;//商品简介
     private Long visitCount;//游览总数
     private Long likeCount;//点赞人数
-    private String isLike;//是否点赞
+    private Boolean isLike;//是否点赞
     private Double score;//评分
     private Long scoreCount;//评分人数
     private Long sales;//销量

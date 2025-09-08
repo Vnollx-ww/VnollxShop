@@ -1,5 +1,6 @@
 package com.example.product.service;
 
 public interface ProductLikeService {
-    Boolean addLike(Long uid,Long pid);
+    void addLike(Long uid, Long pid);
+    Boolean judgeIsLike(Long uid,Long pid);
 }

@@ -1,11 +1,9 @@
-package com.example.common.feign;
+package com.example.user.feign;
 
-import com.example.common.exception.BusinessException;
 import com.example.common.model.order.dto.CreateOrderDTO;
 import com.example.common.model.order.dto.DeleteOrderDTO;
 import com.example.common.model.order.form.OrderItemForm;
 import com.example.common.model.order.vo.OrderVO;
-import com.example.common.utils.NumberValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +13,7 @@ import java.util.List;
 @FeignClient(name = "order-service",path = "/api/order") // 这里只需要服务名
 public interface OrderFeignClient {
     @PostMapping("/create")
-    void createOrder(@ModelAttribute CreateOrderDTO dto, HttpServletRequest request);
+    void createOrder(@ModelAttribute CreateOrderDTO dto);
     @DeleteMapping("/delete")
     void deleteOrder(@ModelAttribute DeleteOrderDTO dto);
     @GetMapping("/list")

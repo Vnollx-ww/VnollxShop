@@ -10,6 +10,8 @@ import com.example.common.model.order.form.OrderForm;
 import com.example.common.model.order.form.OrderItemForm;
 import com.example.common.model.order.vo.OrderItemVO;
 import com.example.common.model.order.vo.OrderVO;
+import com.example.common.model.product.form.ProductForm;
+import com.example.common.model.user.dto.UpdateBalanceDTO;
 import com.example.order.entity.Order;
 import com.example.order.entity.OrderItem;
 import com.example.order.mapper.OrderMapper;
@@ -47,7 +49,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
                 .map(orderItemDTO -> Long.parseLong(orderItemDTO.getPid()))
                 .collect(Collectors.toList());
 
-        List<Product> productList=productFeignClient.getProductList(idList);
+        List<ProductForm> productFormList=productFeignClient.getProductList(idList);
+        List<Product> productList=productFormList.stream()
+                .map(productForm -> {
+                    Product product = new Product();
+                    BeanUtils.copyProperties(productForm, product);
+                    return product;
+                })
+                .toList();
 
         Map<Long, Product> productMap = productList.stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
@@ -64,12 +73,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
         });
 
         // 开始生成订单
+        userFeignClient.updateBalance(new UpdateBalanceDTO(uid,dto.getTotalCost()));//扣减用户余额
 
-
-        Boolean ok=userFeignClient.updateUserBalance(uid,dto.getTotalCost());//扣减用户余额
-        if (!ok){
-            throw new BusinessException("扣减用户余额失败");
-        }
         List<Pair<Long, Long>> deductPairs = dto.getItems().stream()
                 .map(orderItemDTO -> Pair.of(
                         Long.parseLong(orderItemDTO.getPid()),
@@ -77,7 +82,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
                 ))
                 .collect(Collectors.toList());
 
-        ok=productFeignClient.deductStock(deductPairs);//扣减商品库存
+        Boolean ok=productFeignClient.deductStock(deductPairs);//扣减商品库存
         if (!ok){
             throw new BusinessException("扣减商品库存失败");
         }

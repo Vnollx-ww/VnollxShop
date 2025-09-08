@@ -8,7 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 
 public interface ProductService {
-    ProductInfoVO getProductInfo(Long pid);
+    ProductInfoVO getProductInfo(Long uid,Long pid);
     List<ProductForm> getProductList(List<Long> idList);
     Boolean deductStock(List<Pair<Long,Long>> deductPairs);
 }

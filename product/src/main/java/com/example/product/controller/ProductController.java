@@ -25,7 +25,8 @@ public class ProductController {
         if (!NumberValidator.isInteger(pid)){
             throw new BusinessException("无效的请求格式");
         }
-        return productService.getProductInfo(Long.parseLong(pid));
+        Long uid = Long.parseLong(request.getHeader("X-User-Id"));
+        return productService.getProductInfo(uid,Long.parseLong(pid));
     }
     @GetMapping("/list")
     public List<ProductForm> getProductList(@RequestParam(required = false) List<Long> idList){

@@ -1,10 +1,6 @@
 package com.example.user.controller;
 
-import com.example.common.model.user.dto.LoginDTO;
-import com.example.common.model.user.dto.LogoutDTO;
-import com.example.common.model.user.dto.RegisterDTO;
-import com.example.common.model.user.dto.UpdatePasswordDTO;
-import com.example.common.model.user.dto.UpdateUserInfoDTO;
+import com.example.common.model.user.dto.*;
 import com.example.common.model.user.vo.UserInfoVO;
 import com.example.common.result.Result;
 import com.example.user.service.UserService;
@@ -50,7 +46,7 @@ public class UserController {
         return userService.getBalance(uid);
     }
     @PutMapping("/update/balance")
-    public void updateBalance(@RequestBody Long uid,@RequestBody Double cost){
-        userService.updateBalance(uid,cost);
+    public void updateBalance(@ModelAttribute UpdateBalanceDTO dto){
+        userService.updateBalance(dto);
     }
 }

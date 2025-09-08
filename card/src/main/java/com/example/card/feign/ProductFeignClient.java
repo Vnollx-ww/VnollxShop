@@ -1,4 +1,4 @@
-package com.example.order.feign;
+package com.example.card.feign;
 
 import com.example.common.model.product.form.ProductForm;
 import com.example.common.model.product.vo.ProductInfoVO;

@@ -1,4 +1,4 @@
-package com.example.product.feign;
+package com.example.card.feign;
 
 import com.example.common.model.order.dto.CreateOrderDTO;
 import com.example.common.model.order.dto.DeleteOrderDTO;
