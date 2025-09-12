@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 全局响应包装过滤器
- * 统一包装所有2xx成功的响应为Result格式
+ * 统一包装所有2xx成功的响应为Result格式，包括空响应
  */
 @Slf4j
 @Component
@@ -53,16 +53,13 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
                 }
 
                 // 处理不同类型的响应体
-                if (body instanceof Flux<? extends DataBuffer>) {
-                    Flux<? extends DataBuffer> flux = (Flux<? extends DataBuffer>) body;
-                    return super.writeWith(flux.buffer().map(dataBuffers -> {
-                        // 合并所有数据缓冲区
-                        byte[] combinedContent = combineDataBuffers(dataBuffers);
-                        String originalBody = new String(combinedContent, StandardCharsets.UTF_8);
+                if (body instanceof Flux) {
+                    Flux<DataBuffer> flux = (Flux<DataBuffer>) body;
+                    return super.writeWith(flux.collectList().map(dataBuffers -> {
+                        // 处理响应内容
+                        String originalBody = processResponseContent(dataBuffers);
 
-                        log.debug("原始响应体: {}", originalBody);
-
-                        // 处理响应包装
+                        // 包装响应
                         byte[] wrappedContent = wrapResponse(originalBody);
 
                         // 更新响应头
@@ -73,17 +70,12 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
 
                         return bufferFactory.wrap(wrappedContent);
                     }));
-                } else if (body instanceof Mono<? extends DataBuffer>) {
-                    Mono<? extends DataBuffer> mono = (Mono<? extends DataBuffer>) body;
+                } else if (body instanceof Mono) {
+                    Mono<DataBuffer> mono = (Mono<DataBuffer>) body;
                     return super.writeWith(mono.map(dataBuffer -> {
-                        byte[] content = new byte[dataBuffer.readableByteCount()];
-                        dataBuffer.read(content);
-                        DataBufferUtils.release(dataBuffer);
+                        String originalBody = processSingleDataBuffer(dataBuffer);
 
-                        String originalBody = new String(content, StandardCharsets.UTF_8);
-                        log.debug("原始响应体: {}", originalBody);
-
-                        // 处理响应包装
+                        // 包装响应
                         byte[] wrappedContent = wrapResponse(originalBody);
 
                         // 更新响应头
@@ -96,8 +88,12 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
                     }));
                 }
 
-                log.debug("未知响应体类型，直接返回");
-                return super.writeWith(body);
+                log.debug("未知响应体类型，直接包装为空响应");
+                // 对于未知类型，直接包装为空响应
+                byte[] wrappedContent = wrapEmptyResponse();
+                getHeaders().setContentType(MediaType.APPLICATION_JSON);
+                getHeaders().setContentLength(wrappedContent.length);
+                return super.writeWith(Mono.just(bufferFactory.wrap(wrappedContent)));
             }
         };
 
@@ -105,21 +101,46 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
     }
 
     /**
-     * 合并多个DataBuffer
+     * 处理单个DataBuffer
      */
-    private byte[] combineDataBuffers(java.util.List<? extends DataBuffer> dataBuffers) {
+    private String processSingleDataBuffer(DataBuffer dataBuffer) {
+        if (dataBuffer == null || dataBuffer.readableByteCount() == 0) {
+            return "";
+        }
+
+        byte[] content = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(content);
+        DataBufferUtils.release(dataBuffer);
+
+        return new String(content, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 处理多个DataBuffer
+     */
+    private String processResponseContent(java.util.List<DataBuffer> dataBuffers) {
+        if (dataBuffers == null || dataBuffers.isEmpty()) {
+            return "";
+        }
+
         int totalSize = dataBuffers.stream().mapToInt(DataBuffer::readableByteCount).sum();
+        if (totalSize == 0) {
+            return "";
+        }
+
         byte[] combinedContent = new byte[totalSize];
         int offset = 0;
 
         for (DataBuffer dataBuffer : dataBuffers) {
             int length = dataBuffer.readableByteCount();
-            dataBuffer.read(combinedContent, offset, length);
-            offset += length;
+            if (length > 0) {
+                dataBuffer.read(combinedContent, offset, length);
+                offset += length;
+            }
             DataBufferUtils.release(dataBuffer);
         }
 
-        return combinedContent;
+        return new String(combinedContent, StandardCharsets.UTF_8);
     }
 
     /**
@@ -127,6 +148,14 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
      */
     private byte[] wrapResponse(String originalBody) {
         try {
+            // 检查是否为空响应
+            if (originalBody == null || originalBody.trim().isEmpty()) {
+                log.debug("检测到空响应，包装为Result格式");
+                Result<Object> result = Result.success();
+                result.setData(null);
+                return objectMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8);
+            }
+
             // 检查是否已经是Result格式
             if (isAlreadyResultFormat(originalBody)) {
                 log.debug("已经是Result格式，不需要包装");
@@ -145,8 +174,28 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
 
         } catch (Exception e) {
             log.error("包装响应失败", e);
-            // 包装失败，返回原始内容
-            return originalBody.getBytes(StandardCharsets.UTF_8);
+            // 包装失败，尝试返回原始内容或空Result
+            try {
+                Result<Object> result = Result.success();
+                result.setData(originalBody);
+                return objectMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8);
+            } catch (JsonProcessingException ex) {
+                return "{\"code\":200,\"message\":\"success\",\"data\":null}".getBytes(StandardCharsets.UTF_8);
+            }
+        }
+    }
+
+    /**
+     * 包装空响应
+     */
+    private byte[] wrapEmptyResponse() {
+        try {
+            Result<Object> result = Result.success();
+            result.setData(null);
+            return objectMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("包装空响应失败", e);
+            return "{\"code\":200,\"message\":\"success\",\"data\":null}".getBytes(StandardCharsets.UTF_8);
         }
     }
 
@@ -170,7 +219,6 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
 
     /**
      * 检查响应是否已经是Result格式
-     * 更严格的检查方式
      */
     private boolean isAlreadyResultFormat(String json) {
         if (json == null || json.trim().isEmpty()) {
@@ -179,18 +227,7 @@ public class ResponseWrapFilter implements GlobalFilter, Ordered {
 
         try {
             JsonNode jsonNode = objectMapper.readTree(json);
-
-            // 检查是否包含Result的必要字段
-            boolean hasCode = jsonNode.has("code");
-            boolean hasMessage = jsonNode.has("message") || jsonNode.has("msg");
-            boolean hasData = jsonNode.has("data");
-
-            boolean isResult = hasCode && hasMessage;
-            log.debug("Result格式检查: hasCode={}, hasMessage={}, hasData={}, isResult={}",
-                    hasCode, hasMessage, hasData, isResult);
-
-            return isResult;
-
+            return jsonNode.has("code") && (jsonNode.has("message") || jsonNode.has("msg"));
         } catch (JsonProcessingException e) {
             log.debug("JSON解析失败，不是Result格式: {}", e.getMessage());
             return false;

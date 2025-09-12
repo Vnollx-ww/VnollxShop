@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface ProductService {
     ProductInfoVO getProductInfo(Long uid,Long pid);
-    List<ProductForm> getProductList(List<Long> idList);
+    List<ProductInfoVO> getProductList(List<Long> idList,String keyword,String category,String sortType);
     Boolean deductStock(List<Pair<Long,Long>> deductPairs);
+    void updateLikeCount(int type,Long pid);
+    List<String> getCategoryList();
 }

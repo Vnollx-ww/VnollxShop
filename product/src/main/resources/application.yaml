@@ -1,6 +1,8 @@
 server:
   port: 8081
 spring:
+  main:
+    allow-circular-references: true
   application:
     name: product-service # 服务名称 表示这个服务
   cloud:

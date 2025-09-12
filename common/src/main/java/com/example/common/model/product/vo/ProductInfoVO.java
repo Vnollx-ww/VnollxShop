@@ -18,5 +18,5 @@ public class ProductInfoVO {
     private Double score;//评分
     private Long scoreCount;//评分人数
     private Long sales;//销量
-
+    private String cover;//封面
 }

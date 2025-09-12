@@ -29,8 +29,17 @@ public class ProductController {
         return productService.getProductInfo(uid,Long.parseLong(pid));
     }
     @GetMapping("/list")
-    public List<ProductForm> getProductList(@RequestParam(required = false) List<Long> idList){
-        return productService.getProductList(idList);
+    public List<ProductInfoVO> getProductList(
+            @RequestParam(required = false) List<Long> idList,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String sortType
+    ){
+        return productService.getProductList(idList,keyword,category,sortType);
+    }
+    @GetMapping("/list/category")
+    public List<String> getCategoryList(){
+        return productService.getCategoryList();
     }
     @PutMapping("/deduct")
     public Boolean deductStock(@RequestBody List<Pair<Long,Long>> deductPairs){
