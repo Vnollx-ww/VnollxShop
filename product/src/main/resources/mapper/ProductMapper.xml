@@ -20,6 +20,19 @@
         </foreach>
         )
     </update>
+    <update id="updateBatchLike">
+        UPDATE product
+        SET like_count = CASE
+        <foreach collection="list" item="item">
+            WHEN id = #{item.pid} THEN #{item.likeCount}
+        </foreach>
+        ELSE like_count
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.pid}
+        </foreach>
+    </update>
     <select id="lockProducts" resultType="com.example.product.entity.Product">
         SELECT *
         FROM product

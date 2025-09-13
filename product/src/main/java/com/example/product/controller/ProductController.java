@@ -1,6 +1,7 @@
 package com.example.product.controller;
 
 import com.example.common.exception.BusinessException;
+import com.example.common.model.product.dto.LikeUpdateDTO;
 import com.example.common.model.product.dto.StockDeductDTO;
 import com.example.common.model.product.vo.ProductInfoVO;
 import com.example.common.result.Result;
@@ -48,6 +49,11 @@ public class ProductController {
     @PutMapping("/deduct")
     public Result<Void> deductStock(@RequestBody  List<StockDeductDTO> deductList){
         productService.deductStock(deductList);
+        return Result.success();
+    }
+    @PutMapping("/update/like")
+    public Result<Void> updateBatchLike(@RequestBody List<LikeUpdateDTO> dtoList){
+        productService.updateBatchLike(dtoList);
         return Result.success();
     }
 }

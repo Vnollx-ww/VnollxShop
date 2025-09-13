@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.common.model.product.dto.LikeUpdateDTO;
 import com.example.common.model.product.dto.StockDeductDTO;
 import com.example.common.model.product.vo.ProductInfoVO;
 import com.example.common.exception.BusinessException;
 import com.example.product.entity.Product;
+import com.example.product.feign.middleware.RedisFeignClient;
 import com.example.product.filter.BloomFilter;
 import com.example.product.mapper.ProductMapper;
 import com.example.product.service.ProductLikeService;
@@ -35,6 +37,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     private ProductLikeService productLikeService;
     @Autowired
     private BloomFilter bloomFilter;
+    private final RedisFeignClient redisFeignClient;
     @Override
     public ProductInfoVO getProductInfo( Long uid,Long pid) {
         //布隆过滤器筛选
@@ -116,9 +119,30 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
 
     @Override
     public void updateLikeCount(int type,Long pid) {
-        UpdateWrapper<Product> wrapper=new UpdateWrapper<>();
-        wrapper.eq("id",pid).setSql("like_count = like_count + "+type);
-        this.update(wrapper);
+        String key="like:"+pid;
+        if (redisFeignClient.exists(key).getData()){
+            redisFeignClient.increment(key,1);
+            return ;
+        }
+        QueryWrapper<Product> wrapper=new QueryWrapper<>();
+        wrapper.eq("id",pid).select("like_count");
+        Long likeCount=this.getOne(wrapper).getLikeCount();
+        redisFeignClient.setValue(key,likeCount);
+
+        UpdateWrapper<Product> updateWrapper=new UpdateWrapper<>();
+        updateWrapper.eq("id",pid).setSql("like_count = like_count + "+type);
+        this.update(updateWrapper);
+    }
+
+    @Override
+    public void updateBatchLike(List<LikeUpdateDTO> dtoList) {
+        List<Long> productIds = dtoList.stream()
+                .map(LikeUpdateDTO::getPid)
+                .sorted()
+                .collect(Collectors.toList());
+
+        this.baseMapper.lockProducts(productIds); // 加锁
+        this.baseMapper.updateBatchLike(dtoList);
     }
 
     @Override

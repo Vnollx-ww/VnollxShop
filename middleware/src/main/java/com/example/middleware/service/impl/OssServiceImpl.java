@@ -9,10 +9,9 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.errors.MinioException;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,31 +19,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
 @Service
+@RequiredArgsConstructor
 public class OssServiceImpl implements OssService {
-
-    @Value("${minio.endpoint}")
-    private String endpoint;
-
-    @Value("${minio.access-key}")
-    private String accessKey;
-
-    @Value("${minio.secret-key}")
-    private String secretKey;
-
-    private static String domain;
-    private MinioClient minioClient;
+    private final MinioClient minioClient;
+    private static String endpoint;
 
     @PostConstruct
     public void init() {
         // 在初始化时创建MinioClient
-        domain=endpoint;
-        this.minioClient = MinioClient.builder()
-                .endpoint(endpoint)
-                .credentials(accessKey, secretKey)
-                .build();
+        endpoint="http://106.54.223.38:9000";
     }
     private static final Logger logger = LoggerFactory.getLogger(OssServiceImpl.class);
     @Override
@@ -105,7 +90,7 @@ public class OssServiceImpl implements OssService {
         }
     }
     private static String generatePublicUrl(String bucket, String encryptedFileName,String lastFix) {
-        return domain + "/" + bucket + "/" + encryptedFileName+"."+lastFix;
+        return endpoint + "/" + bucket + "/" + encryptedFileName+"."+lastFix;
     }
 
 }
