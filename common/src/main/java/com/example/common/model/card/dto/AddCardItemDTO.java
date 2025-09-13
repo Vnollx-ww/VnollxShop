@@ -1,4 +1,4 @@
-package com.example.common.model.cart.dto;
+package com.example.common.model.card.dto;
 
 import lombok.Data;
 

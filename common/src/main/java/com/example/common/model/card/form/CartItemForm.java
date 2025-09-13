@@ -1,11 +1,12 @@
-package com.example.common.model.cart.vo;
+package com.example.common.model.card.form;
 
 import lombok.Data;
 
 @Data
-public class CartItemVO {
-    private String id;
-    private String pid;
+public class CartItemForm {
+    private Long id;
+    private Long uid;
+    private Long pid;
     private Long number;
     private String productName;
     private String cover;

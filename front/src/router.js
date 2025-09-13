@@ -31,7 +31,7 @@ const router = new VueRouter({
         {
             path: '/cart',
             name: '购物车',
-            component: () => import('@/views/Cart'),
+            component: () => import('@/views/Card.vue'),
         },
         {
             path: '/orders',

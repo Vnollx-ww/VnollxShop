@@ -8,11 +8,11 @@ import com.example.card.entity.CardItem;
 import com.example.card.mapper.CardItemMapper;
 import com.example.card.service.CardService;
 import com.example.common.exception.BusinessException;
-import com.example.common.model.cart.dto.AddCardItemDTO;
-import com.example.common.model.cart.dto.DeleteCardItemByShopDTO;
-import com.example.common.model.cart.dto.DeleteCardItemDTO;
-import com.example.common.model.cart.dto.UpdateNumberDTO;
-import com.example.common.model.cart.vo.CartItemVO;
+import com.example.common.model.card.dto.AddCardItemDTO;
+import com.example.common.model.card.dto.DeleteCardItemByShopDTO;
+import com.example.common.model.card.dto.DeleteCardItemDTO;
+import com.example.common.model.card.dto.UpdateNumberDTO;
+import com.example.common.model.card.vo.CardItemVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -24,12 +24,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CardServiceImpl extends ServiceImpl<CardItemMapper,CardItem> implements CardService {
     @Override
-    public List<CartItemVO> getCardItemList(Long uid) {
+    public List<CardItemVO> getCardItemList(Long uid) {
         QueryWrapper<CardItem> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("uid",uid);
         return this.list(queryWrapper).stream()
                 .map(cardItem -> {
-                    CartItemVO vo = new CartItemVO();
+                    CardItemVO vo = new CardItemVO();
                     BeanUtils.copyProperties(cardItem, vo);
                     vo.setId(String.valueOf(cardItem.getId()));
                     vo.setPid(String.valueOf(cardItem.getPid()));

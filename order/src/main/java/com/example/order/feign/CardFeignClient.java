@@ -1,6 +1,6 @@
 package com.example.order.feign;
 
-import com.example.common.model.cart.dto.DeleteCardItemByShopDTO;
+import com.example.common.model.card.dto.DeleteCardItemByShopDTO;
 
 import com.example.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;

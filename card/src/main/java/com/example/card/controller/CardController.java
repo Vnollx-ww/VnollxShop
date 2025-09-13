@@ -1,11 +1,11 @@
 package com.example.card.controller;
 
 import com.example.card.service.CardService;
-import com.example.common.model.cart.dto.AddCardItemDTO;
-import com.example.common.model.cart.dto.DeleteCardItemByShopDTO;
-import com.example.common.model.cart.dto.DeleteCardItemDTO;
-import com.example.common.model.cart.dto.UpdateNumberDTO;
-import com.example.common.model.cart.vo.CartItemVO;
+import com.example.common.model.card.dto.AddCardItemDTO;
+import com.example.common.model.card.dto.DeleteCardItemByShopDTO;
+import com.example.common.model.card.dto.DeleteCardItemDTO;
+import com.example.common.model.card.dto.UpdateNumberDTO;
+import com.example.common.model.card.vo.CardItemVO;
 import com.example.common.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.List;
 public class CardController {
     private final CardService cardService;
     @GetMapping("/list")
-    public Result<List<CartItemVO>> getCardItemList( HttpServletRequest request){
+    public Result<List<CardItemVO>> getCardItemList(HttpServletRequest request){
         Long uid = Long.parseLong(request.getHeader("X-User-Id"));
         return Result.success(cardService.getCardItemList(uid));
     }
