@@ -48,8 +48,9 @@ public class BloomFilter {
      */
     private void loadAllProducts() {
         try {
-            List<ProductInfoVO> products = productService.getProductList(null,null,null,null);
-            if (products == null || products.isEmpty()) {
+            List<ProductInfoVO> products = productService.getProductList(null,null,null,null,null);
+            products.addAll(productService.getProductList(null,null,null,null,"1"));
+            if (products.isEmpty()) {
                 logger.warn("未找到商品数据");
                 return;
             }

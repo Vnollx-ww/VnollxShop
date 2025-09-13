@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ProductService {
     ProductInfoVO getProductInfo(Long uid,Long pid);
-    List<ProductInfoVO> getProductList(List<Long> idList,String keyword,String category,String sortType);
+    List<ProductInfoVO> getProductList(List<Long> idList,String keyword,String category,String sortType,String type);
     void deductStock(List<StockDeductDTO> deductList);
     void updateLikeCount(int type,Long pid);
     void updateBatchLike(List<LikeUpdateDTO> dtoList);

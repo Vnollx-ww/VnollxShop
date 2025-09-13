@@ -16,6 +16,8 @@ import com.example.product.filter.BloomFilter;
 import com.example.product.mapper.ProductMapper;
 import com.example.product.service.ProductLikeService;
 import com.example.product.service.ProductService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -45,6 +47,20 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
             logger.info("商品不存在，已由布隆过滤器筛选掉");
             return null;
         }
+        String key="product:"+pid;
+        String jsonProductInfo= (String) redisFeignClient.getValue(key).getData();
+        if (jsonProductInfo!=null){
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                ProductInfoVO vo = objectMapper.readValue(jsonProductInfo, ProductInfoVO.class);
+                vo.setIsLike(productLikeService.judgeIsLike(uid,pid));
+                Integer likeCount= (Integer) redisFeignClient.getValue("like:"+pid).getData();
+                if (likeCount!=null) vo.setLikeCount(Long.valueOf(likeCount));
+                return vo;
+            } catch (JsonProcessingException e) {
+                logger.error("JSON反序列化失败: {}", e.getMessage());
+            }
+        }
         Product product=this.getById(pid);
         if (product==null){
             throw new BusinessException("商品不存在");
@@ -59,22 +75,29 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
         BeanUtils.copyProperties(product,vo);
         vo.setId(String.valueOf(product.getId()));
         vo.setIsLike(productLikeService.judgeIsLike(uid,pid));
-
+        Integer likeCount= (Integer) redisFeignClient.getValue("like:"+pid).getData();
+        if (likeCount!=null) vo.setLikeCount(Long.valueOf(likeCount));
         return vo;
     }
 
     @Override
     public List<ProductInfoVO> getProductList(
             List<Long> idList,String keyword,String category,
-            String sortType
+            String sortType,String type
     ) {
         QueryWrapper<Product> queryWrapper=new QueryWrapper<>();
-        queryWrapper.select("id,name,stock,cover,price,introduce,category");
+        queryWrapper.select("id,name,stock,cover,price,introduce,category,type");
         if (idList!=null)queryWrapper.in("id",idList);
         if (StringUtils.isNotBlank(keyword))queryWrapper.like("name",keyword);
 
         if (StringUtils.isNotBlank(category))queryWrapper.eq("category",category);
 
+        if (StringUtils.isNotBlank(type)){
+            queryWrapper.eq("type",type);
+        }
+        else {
+            queryWrapper.eq("type",'0');
+        }
         List<Product> productList = this.list(queryWrapper);
 
         // 使用Stream转换
@@ -99,6 +122,20 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
                 .sorted()
                 .collect(Collectors.toList());
 
+        if (deductList.size()==1&&deductList.get(0).getType().equals("1")){//说明是秒杀商品
+            //走分布式锁
+            Long pid=deductList.get(0).getProductId();
+            Long quantity=deductList.get(0).getQuantity();
+            String key="product:"+pid;
+            Long result = (Long) redisFeignClient.execute(key, quantity.toString()).getData();
+            if (result == -1) {
+                throw new BusinessException("商品不存在");
+            } else if (result == -2) {
+                throw new BusinessException("商品库存不足");
+            }
+            logger.info("扣减成功，剩余库存: {}", result);
+        }
+
         List<Product> productList=this.baseMapper.lockProducts(productIds); // 加锁
 
         Map<Long, Product> productMap = productList.stream()
@@ -114,6 +151,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
                 throw new BusinessException("商品" + product.getName() + "库存不够");
             }
         });
+
+
         this.baseMapper.batchDeductStock(deductList);
     }
 
@@ -121,7 +160,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     public void updateLikeCount(int type,Long pid) {
         String key="like:"+pid;
         if (redisFeignClient.exists(key).getData()){
-            redisFeignClient.increment(key,1);
+            redisFeignClient.increment(key,type);
             return ;
         }
         QueryWrapper<Product> wrapper=new QueryWrapper<>();

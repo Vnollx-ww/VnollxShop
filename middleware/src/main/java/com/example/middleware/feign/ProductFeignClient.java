@@ -15,7 +15,13 @@ public interface ProductFeignClient {
     @GetMapping("/info")
     Result<ProductInfoVO> getProductInfo(@RequestParam String pid);
     @GetMapping("/list")
-    Result<List<ProductForm>> getProductList(@RequestParam(required = false) List<Long> idList);
+    Result<List<ProductInfoVO>> getProductList(
+            @RequestParam(required = false) List<Long> idList,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String sortType,
+            @RequestParam(required = false) String type
+    );
     @PutMapping("/deduct")
     Result<Void> deductStock(@RequestBody List<StockDeductDTO> deductList);
     @PostMapping("/like/add")

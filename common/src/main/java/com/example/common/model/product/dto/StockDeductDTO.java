@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class StockDeductDTO {
     private Long productId;
     private Long quantity;
+    private String type;
 }

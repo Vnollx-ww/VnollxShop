@@ -43,6 +43,11 @@ const router = new VueRouter({
             name: '个人中心',
             component: () => import('@/views/Profile'),
         },
+        {
+            path: '/flash-sale',
+            name: '秒杀专区',
+            component: () => import('@/views/FlashSale'),
+        },
         //嵌套路由
         {
             path: '/layout',

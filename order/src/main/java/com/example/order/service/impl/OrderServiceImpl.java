@@ -65,7 +65,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
         List<StockDeductDTO> deductList = dto.getItems().stream()
                 .map(orderItemDTO -> new StockDeductDTO(
                         Long.parseLong(orderItemDTO.getPid()),
-                        orderItemDTO.getNumber()
+                        orderItemDTO.getNumber(),
+                        dto.getType()
                 ))
                 .collect(Collectors.toList());
         Result<Void> stockResult=productFeignClient.deductStock(deductList);

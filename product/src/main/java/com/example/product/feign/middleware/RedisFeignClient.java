@@ -99,4 +99,10 @@ public interface RedisFeignClient {
     Result<Boolean> hashExists(
             @RequestParam("key") String key,
             @RequestParam("hashKey") String hashKey);
+
+    @PostMapping("/execute")
+    Result<Object> execute(
+            @RequestParam String key,
+            @RequestParam String quantity
+    );
 }

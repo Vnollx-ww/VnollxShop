@@ -1,17 +1,20 @@
 package com.example.middleware.service.impl;
 
+import com.example.middleware.config.RedisLuaConfig;
 import com.example.middleware.service.CacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class RedisServiceImpl implements CacheService {
     private final RedisTemplate<String, Object> redisTemplate;
-
+    private final RedisLuaConfig redisLuaConfig;
     @Override
     public void set(String key, Object value) {
         redisTemplate.opsForValue().set(key, value);
@@ -70,6 +73,16 @@ public class RedisServiceImpl implements CacheService {
     @Override
     public boolean hasKey(String key, String hashKey) {
         return redisTemplate.opsForHash().hasKey(key, hashKey);
+    }
+
+    @Override
+    public Object execute(String key, String quantity) {
+        DefaultRedisScript<Long> script = redisLuaConfig.getDeductStockScript();
+        return redisTemplate.execute(
+                script,
+                Collections.singletonList(key), // KEYS 列表
+                quantity                        // ARGV 参数
+        );
     }
 
 

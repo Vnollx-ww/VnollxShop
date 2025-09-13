@@ -152,4 +152,11 @@ public class CacheController {
         boolean exists = redisService.hasKey(key, hashKey);
         return Result.success(exists);
     }
+    @PostMapping("/execute")
+    public Result<Object> execute(
+            @RequestParam String key,
+            @RequestParam String quantity
+    ) {
+        return Result.success(redisService.execute(key,quantity));
+    }
 }

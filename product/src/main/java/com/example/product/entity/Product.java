@@ -25,4 +25,5 @@ public class Product {
     private String cover;//封面
     @TableField(exist = false)  // 明确表示这不是数据库字段
     private Boolean isLike;
+    private String type;
 }

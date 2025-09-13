@@ -162,7 +162,11 @@ export default {
         if(data && data.url){ window.open(data.url, '_blank') }
         else { this.$message.success('已发起支付，请完成付款') }
         this.showRecharge = false
-      }catch(e){} finally{ this.paying = false }
+      }catch(e){
+        // 显示后端返回的具体错误信息
+        const errorMessage = e.message || '支付失败，请重试'
+        this.$message.error(errorMessage)
+      } finally{ this.paying = false }
     }
   }
 }

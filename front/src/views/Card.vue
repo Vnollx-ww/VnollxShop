@@ -132,7 +132,9 @@ export default {
           this.showOrder = false
           this.$router.push('/orders')
         }catch(e){
-          this.$message.error('下单失败，请确认登录并重试')
+          // 显示后端返回的具体错误信息
+          const errorMessage = e.message || '下单失败，请重试'
+          this.$message.error(errorMessage)
         }finally{
           this.submitting = false
         }

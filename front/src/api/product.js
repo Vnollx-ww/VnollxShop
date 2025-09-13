@@ -55,6 +55,15 @@ export function cancelLike(pid){
     })
 }
 
+// 获取秒杀商品列表
+export function getFlashSaleProducts(){
+    return request({
+        url: "/api/product/list",
+        method: "get",
+        params: { type: "1" }
+    })
+}
+
 
 
 

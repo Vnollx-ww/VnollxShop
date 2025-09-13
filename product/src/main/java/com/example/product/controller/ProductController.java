@@ -9,7 +9,6 @@ import com.example.common.utils.NumberValidator;
 import com.example.product.service.ProductService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,9 +33,10 @@ public class ProductController {
             @RequestParam(required = false) List<Long> idList,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String sortType
+            @RequestParam(required = false) String sortType,
+            @RequestParam(required = false) String type
     ){
-        List<ProductInfoVO> productList = productService.getProductList(idList, keyword, category, sortType);
+        List<ProductInfoVO> productList = productService.getProductList(idList, keyword, category, sortType,type);
         return Result.success(productList);
     }
 

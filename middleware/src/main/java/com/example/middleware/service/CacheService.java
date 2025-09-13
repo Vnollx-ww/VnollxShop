@@ -1,5 +1,8 @@
 package com.example.middleware.service;
 
+import com.example.common.result.Result;
+import org.springframework.web.bind.annotation.RequestParam;
+
 public interface CacheService {
     void set(String key, Object value);
     void set(String key, Object value, long expireTime);
@@ -13,4 +16,5 @@ public interface CacheService {
     Object getHash(String key, String hashKey);
     void deleteHash(String key, String hashKey);
     boolean hasKey(String key, String hashKey);
+    Object execute(String key, String quantity);
 }

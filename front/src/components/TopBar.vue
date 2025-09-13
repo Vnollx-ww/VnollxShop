@@ -1,6 +1,10 @@
 <template>
   <div class="topbar">
     <div class="logo">Vnollx 商城</div>
+    <div class="nav-buttons">
+      <el-button type="text" @click="goToHome" class="nav-btn">主页</el-button>
+      <el-button type="text" @click="goToFlashSale" class="nav-btn flash-sale-btn">秒杀专区</el-button>
+    </div>
     <div class="spacer"></div>
     <el-dropdown trigger="click" @command="onUserCommand">
       <span class="avatar-trigger">
@@ -86,6 +90,12 @@ export default {
     await this.fetchMe()
   },
   methods:{
+    goToHome(){
+      this.$router.push('/')
+    },
+    goToFlashSale(){
+      this.$router.push('/flash-sale')
+    },
     async fetchMe(){
       try{
         const { data } = await getMyInfo()
@@ -161,7 +171,9 @@ export default {
         this.$message.success('充值成功')
         this.showRecharge = false
       }catch(e){
-
+        // 显示后端返回的具体错误信息
+        const errorMessage = e.message || '充值失败，请重试'
+        this.$message.error(errorMessage)
       }
     }
   }
@@ -171,6 +183,11 @@ export default {
 <style scoped>
 .topbar{ display:flex; align-items:center; gap:12px; height:56px; padding: 0 16px; background:#fff; border-radius: 10px; box-shadow: 0 6px 18px rgba(24, 144, 255, 0.08), 0 2px 6px rgba(24, 144, 255, 0.06); margin-bottom: 12px; }
 .logo{ font-weight: 600; color:#1f3b57; }
+.nav-buttons{ display:flex; align-items:center; gap:8px; }
+.nav-btn{ color:#1f3b57; font-weight: 500; padding: 8px 12px; }
+.nav-btn:hover{ color:#1890ff; background-color: rgba(24, 144, 255, 0.1); }
+.flash-sale-btn{ color:#ff4d4f; }
+.flash-sale-btn:hover{ color:#ff7875; background-color: rgba(255, 77, 79, 0.1); }
 .spacer{ flex:1; }
 .avatar-trigger{ display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; }
 .avatar{ width: 32px; height:32px; border-radius:50%; object-fit: cover; border:1px solid #e9eef3; }
