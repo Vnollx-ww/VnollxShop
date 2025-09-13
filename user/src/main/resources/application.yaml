@@ -13,7 +13,6 @@ spring:
       #optional 如果找不到该文件则不报错
       - optional:nacos:${spring.application.name}.yaml
       - optional:nacos:mysql.yaml?group=DEFAULT_GROUP  # 显式加载 mysql.yaml
-      - optional:nacos:redis.yaml?group=DEFAULT_GROUP  # 显式加载 redis.yaml
       - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
 mybatis-plus:
   global-config:

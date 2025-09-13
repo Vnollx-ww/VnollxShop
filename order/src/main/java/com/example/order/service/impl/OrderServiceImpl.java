@@ -4,31 +4,33 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.common.exception.BusinessException;
+import com.example.common.model.cart.dto.DeleteCardItemByShopDTO;
+import com.example.common.model.cart.dto.DeleteCardItemDTO;
 import com.example.common.model.order.dto.CreateOrderDTO;
 import com.example.common.model.order.dto.DeleteOrderDTO;
 import com.example.common.model.order.form.OrderForm;
 import com.example.common.model.order.form.OrderItemForm;
 import com.example.common.model.order.vo.OrderItemVO;
 import com.example.common.model.order.vo.OrderVO;
-import com.example.common.model.product.form.ProductForm;
+import com.example.common.model.product.dto.StockDeductDTO;
 import com.example.common.model.user.dto.UpdateBalanceDTO;
+import com.example.common.result.Result;
 import com.example.order.entity.Order;
 import com.example.order.entity.OrderItem;
+import com.example.order.feign.CardFeignClient;
 import com.example.order.mapper.OrderMapper;
 import com.example.order.service.OrderItemService;
-import com.example.product.entity.Product;
 import com.example.order.feign.ProductFeignClient;
 import com.example.order.feign.UserFeignClient;
 import com.example.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,69 +38,56 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements OrderService {
     private final UserFeignClient userFeignClient;
     private final ProductFeignClient productFeignClient;
+    private final CardFeignClient cardFeignClient;
     private final OrderItemService orderItemService;
     @Override
+    @Transactional
     public void createOrder(CreateOrderDTO dto,Long uid) {
-        // 检查余额
-        if (userFeignClient.getBalance(uid) < dto.getTotalCost()) {
-            throw new BusinessException("余额不足，请充值");
-        }
 
-        // 检查库存
-        List<Long> idList = dto.getItems().stream()
+        // 开始生成订单
+
+        //从购物车删除
+        List<Long> pidList = dto.getItems().stream()
                 .map(orderItemDTO -> Long.parseLong(orderItemDTO.getPid()))
                 .collect(Collectors.toList());
 
-        List<ProductForm> productFormList=productFeignClient.getProductList(idList);
-        List<Product> productList=productFormList.stream()
-                .map(productForm -> {
-                    Product product = new Product();
-                    BeanUtils.copyProperties(productForm, product);
-                    return product;
-                })
-                .toList();
+        Result<Void> cardResult=cardFeignClient.deleteCardItemByShop(new DeleteCardItemByShopDTO(pidList,uid));
+        if (cardResult.getCode()!=200){
+            throw new BusinessException(cardResult.getMessage());
+        }
 
-        Map<Long, Product> productMap = productList.stream()
-                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        //扣减用户余额
+        Result<Void> balanceResult=userFeignClient.updateBalance(new UpdateBalanceDTO(uid,dto.getTotalCost()));
+        if (balanceResult.getCode()!=200){
+            throw new BusinessException(balanceResult.getMessage());
+        }
 
-        dto.getItems().forEach(orderItemDTO -> {
-            Long pid=Long.parseLong(orderItemDTO.getPid());
-            Product product = productMap.get(pid);
-            if (product == null) {
-                throw new BusinessException("商品ID " + pid + " 不存在");
-            }
-            if (product.getStock() < orderItemDTO.getNumber()) {
-                throw new BusinessException("商品" + orderItemDTO.getProductName() + "库存不够");
-            }
-        });
-
-        // 开始生成订单
-        userFeignClient.updateBalance(new UpdateBalanceDTO(uid,dto.getTotalCost()));//扣减用户余额
-
-        List<Pair<Long, Long>> deductPairs = dto.getItems().stream()
-                .map(orderItemDTO -> Pair.of(
+        //扣减商品库存
+        List<StockDeductDTO> deductList = dto.getItems().stream()
+                .map(orderItemDTO -> new StockDeductDTO(
                         Long.parseLong(orderItemDTO.getPid()),
                         orderItemDTO.getNumber()
                 ))
                 .collect(Collectors.toList());
+        Result<Void> stockResult=productFeignClient.deductStock(deductList);
+        if (stockResult.getCode()!=200){
+            throw new BusinessException(stockResult.getMessage());
+        }
 
-        Boolean ok=productFeignClient.deductStock(deductPairs);//扣减商品库存
-        if (!ok){
-            throw new BusinessException("扣减商品库存失败");
-        }
-        Order order=new Order(dto);
-        ok=this.save(order);
-        if (!ok){
-            throw new BusinessException("创建订单失败");
-        }
+        //生成订单
+        Order order=new Order(dto,uid);
+        this.save(order);
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.eq("uid", uid)
+                .orderByDesc("create_time") // 按创建时间降序
+                .last("LIMIT 1"); // 只取一条
+
+        Order lastOrder = this.getOne(wrapper);
         List<OrderItem> orderItemList = dto.getItems().stream()
-                .map(itemDTO -> new OrderItem(itemDTO,order.getId()))
+                .map(itemDTO -> new OrderItem(itemDTO, lastOrder.getId()))
                 .toList();
 
-        ok=orderItemService.insertOrderItemList(orderItemList);
-        if (!ok){
-            throw new BusinessException("创建订单项失败");
-        }
+        orderItemService.insertOrderItemList(orderItemList);
     }
 
     @Override

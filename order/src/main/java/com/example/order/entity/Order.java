@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@TableName("order")
+@TableName("orders")
 public class Order {
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -26,9 +26,9 @@ public class Order {
     @TableField(exist = false)
     private List<OrderItem> orderItemList;
     public Order(){}
-    public Order(CreateOrderDTO dto){
+    public Order(CreateOrderDTO dto,Long uid){
 
-        this.uid= Long.valueOf(dto.getUid());
+        this.uid= uid;
         this.consignee=dto.getConsignee();
         this.email=dto.getEmail();
         this.address=dto.getAddress();

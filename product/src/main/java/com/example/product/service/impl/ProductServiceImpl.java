@@ -6,10 +6,11 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
+import com.example.common.model.product.dto.StockDeductDTO;
 import com.example.common.model.product.vo.ProductInfoVO;
 import com.example.common.exception.BusinessException;
 import com.example.product.entity.Product;
+import com.example.product.filter.BloomFilter;
 import com.example.product.mapper.ProductMapper;
 import com.example.product.service.ProductLikeService;
 import com.example.product.service.ProductService;
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,8 +33,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     @Autowired
     private ProductLikeService productLikeService;
+    @Autowired
+    private BloomFilter bloomFilter;
     @Override
     public ProductInfoVO getProductInfo( Long uid,Long pid) {
+        //布隆过滤器筛选
+        if (!bloomFilter.contains(String.valueOf(pid))){
+            logger.info("商品不存在，已由布隆过滤器筛选掉");
+            return null;
+        }
         Product product=this.getById(pid);
         if (product==null){
             throw new BusinessException("商品不存在");
@@ -76,21 +86,32 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     }
 
     @Override
-    public Boolean deductStock(List<Pair<Long, Long>> deductPairs) {
-
-        if (CollectionUtils.isEmpty(deductPairs)) {
-            return true;
+    public void deductStock(List<StockDeductDTO> deductList) {
+        if (CollectionUtils.isEmpty(deductList)) {
+            return ;
         }
-        List<Long> productIds = deductPairs.stream()
-                .map(Pair::getKey)
+
+        List<Long> productIds = deductList.stream()
+                .map(StockDeductDTO::getProductId)
                 .sorted()
                 .collect(Collectors.toList());
 
-        this.baseMapper.lockProducts(productIds);//加锁
+        List<Product> productList=this.baseMapper.lockProducts(productIds); // 加锁
 
-        int affectedRows = baseMapper.batchDeductStock(deductPairs);
+        Map<Long, Product> productMap = productList.stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
 
-        return affectedRows == deductPairs.size();
+        deductList.forEach(stockDeductDTO -> {
+            Long pid=stockDeductDTO.getProductId();
+            Product product = productMap.get(pid);
+            if (product == null) {
+                throw new BusinessException("商品ID " + pid + " 不存在");
+            }
+            if (product.getStock() < stockDeductDTO.getQuantity()) {
+                throw new BusinessException("商品" + product.getName() + "库存不够");
+            }
+        });
+        this.baseMapper.batchDeductStock(deductList);
     }
 
     @Override

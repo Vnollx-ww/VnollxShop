@@ -7,21 +7,21 @@
         UPDATE product
         SET stock = stock - CASE
         <foreach collection="list" item="item">
-            WHEN id = #{item.left} THEN #{item.right}
+            WHEN id = #{item.productId} THEN #{item.quantity}
         </foreach>
         END
         WHERE id IN
         <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.left}
+            #{item.productId}
         </foreach>
         AND (
         <foreach collection="list" item="item" separator=" OR ">
-            (id = #{item.left} AND stock >= #{item.right})
+            (id = #{item.productId} AND stock >= #{item.quantity})
         </foreach>
         )
     </update>
-    <select id="lockProducts" resultType="java.lang.Boolean">
-        SELECT 1
+    <select id="lockProducts" resultType="com.example.product.entity.Product">
+        SELECT *
         FROM product
         WHERE id IN
         <foreach item="id" collection="productIds" open="(" separator="," close=")">

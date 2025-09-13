@@ -1,9 +1,11 @@
 package com.example.user.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.example.common.model.user.dto.*;
 import com.example.common.model.user.vo.UserInfoVO;
 import com.example.common.result.Result;
 import com.example.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,39 +16,73 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
     @GetMapping("/info/id")
-    public UserInfoVO getUserInfoById(@RequestParam String uid){
-        return userService.getUserInfoById(Long.parseLong(uid));
+    public Result<UserInfoVO> getUserInfoById(
+            @RequestParam(required = false) String uid,
+            HttpServletRequest request
+    ){
+            if (StringUtils.isBlank(uid)){
+                Long uuid = Long.parseLong(request.getHeader("X-User-Id"));
+                UserInfoVO userInfo = userService.getUserInfoById(uuid);
+                return Result.success(userInfo);
+            }
+            UserInfoVO userInfo = userService.getUserInfoById(Long.parseLong(uid));
+            return Result.success(userInfo);
     }
+
     @GetMapping("/info/email")
-    public UserInfoVO getUserInfoByEmail(@RequestParam String email){
-        return userService.getUserInfoByEmail(email);
+    public Result<UserInfoVO> getUserInfoByEmail(@RequestParam String email){
+            UserInfoVO userInfo = userService.getUserInfoByEmail(email);
+            return Result.success(userInfo);
     }
+
     @PutMapping("/update/info")
-    public void updateUserInfo(@ModelAttribute  UpdateUserInfoDTO dto){
-        userService.updateUserInfo(dto);
+    public Result<UserInfoVO> updateUserInfo(@ModelAttribute UpdateUserInfoDTO dto, HttpServletRequest request){
+            Long uid = Long.parseLong(request.getHeader("X-User-Id"));
+            UserInfoVO updatedUserInfo = userService.updateUserInfo(dto, uid);
+            return Result.success(updatedUserInfo);
     }
+
     @PutMapping("/update/password")
-    public void updatePassword(@ModelAttribute  UpdatePasswordDTO dto){
-        userService.updatePassword(dto);
+    public Result<Void> updatePassword(@ModelAttribute UpdatePasswordDTO dto, HttpServletRequest request){
+            Long uid = Long.parseLong(request.getHeader("X-User-Id"));
+            userService.updatePassword(dto, uid);
+            return Result.success();
     }
+
     @PostMapping("/register")
-    public void register(@ModelAttribute RegisterDTO dto){
-        userService.register(dto);
+    public Result<Void> register(@ModelAttribute RegisterDTO dto){
+            userService.register(dto);
+            return Result.success();
     }
+
     @PostMapping("/login")
-    public String login(@ModelAttribute LoginDTO dto){
-        return userService.login(dto);
+    public Result<String> login(@ModelAttribute LoginDTO dto){
+            String token = userService.login(dto);
+            return Result.success(token);
     }
+
     @PostMapping("/logout")
-    public void logout(@ModelAttribute LogoutDTO dto){
-        userService.logout(dto);
+    public Result<Void> logout(@ModelAttribute LogoutDTO dto){
+            userService.logout(dto);
+            return Result.success();
     }
+
     @GetMapping("/get-balance")
-    public Double getBalance(@RequestParam Long uid){
-        return userService.getBalance(uid);
+    public Result<Double> getBalance(@RequestParam Long uid){
+            Double balance = userService.getBalance(uid);
+            return Result.success(balance);
     }
+
     @PutMapping("/update/balance")
-    public void updateBalance(@ModelAttribute UpdateBalanceDTO dto){
-        userService.updateBalance(dto);
+    public Result<Void> updateBalance(@RequestBody UpdateBalanceDTO dto){
+            userService.updateBalance(dto);
+            return Result.success();
+    }
+
+    @PutMapping("/recharge")
+    public Result<Void> recharge(@RequestParam Double amount, HttpServletRequest request){
+            Long uid = Long.parseLong(request.getHeader("X-User-Id"));
+            userService.recharge(amount, uid);
+            return Result.success();
     }
 }

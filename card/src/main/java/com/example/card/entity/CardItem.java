@@ -11,5 +11,7 @@ public class CardItem {
     private Long uid;
     private Long pid;
     private Long number;
+    private String productName;
+    private String cover;
     private Double unitPrice;
 }

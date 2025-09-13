@@ -6,7 +6,9 @@ import java.io.Serializable;
 
 @Data
 public class UserInfoVO implements Serializable {
-    private Long id;
+    private String id;
     private String name;
     private String avatar;
+    private Double balance;
+    private String email;
 }

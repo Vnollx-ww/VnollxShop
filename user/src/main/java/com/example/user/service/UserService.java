@@ -7,11 +7,12 @@ import lombok.Data;
 public interface UserService {
     UserInfoVO getUserInfoById(Long id);
     UserInfoVO getUserInfoByEmail(String email);
-    void updateUserInfo(UpdateUserInfoDTO dto);
-    void updatePassword(UpdatePasswordDTO dto);
+    UserInfoVO updateUserInfo(UpdateUserInfoDTO dto,Long uid);
+    void updatePassword(UpdatePasswordDTO dto,Long uid);
     void register(RegisterDTO dto);
     String login(LoginDTO dto);
     void logout(LogoutDTO dto);
     Double getBalance(Long uid);
     void updateBalance(UpdateBalanceDTO dto);
+    void recharge(Double amount,Long uid);
 }

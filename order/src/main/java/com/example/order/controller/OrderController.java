@@ -20,21 +20,23 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
     @PostMapping("/create")
-    public void createOrder(@ModelAttribute CreateOrderDTO dto,HttpServletRequest request){
+    public Result<Void> createOrder(@ModelAttribute CreateOrderDTO dto,HttpServletRequest request){
         Long uid = Long.parseLong(request.getHeader("X-User-Id"));
         orderService.createOrder(dto,uid);
+        return Result.success();
     }
     @DeleteMapping("/delete")
-    public void deleteOrder(@ModelAttribute DeleteOrderDTO dto){
+    public Result<Void> deleteOrder(@ModelAttribute DeleteOrderDTO dto){
         if (!NumberValidator.isInteger(dto.getOid())){
             throw new BusinessException("无效的请求格式");
         }
         orderService.deleteOrder(dto);
+        return Result.success();
     }
     @GetMapping("/list")
-    public List<OrderVO> getOrderList(HttpServletRequest request){
+    public Result<List<OrderVO>> getOrderList(HttpServletRequest request){
 
         Long uid = Long.parseLong(request.getHeader("X-User-Id"));
-        return orderService.getOrderList(uid);
+        return Result.success(orderService.getOrderList(uid));
     }
 }

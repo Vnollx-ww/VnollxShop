@@ -19,9 +19,9 @@ public class OrderForm {
     private LocalDateTime createTime;
     private List<OrderItemForm> orderItemList;
     public OrderForm(){}
-    public OrderForm(CreateOrderDTO dto){
+    public OrderForm(CreateOrderDTO dto,Long uid){
 
-        this.uid= Long.valueOf(dto.getUid());
+        this.uid= uid;
         this.consignee=dto.getConsignee();
         this.email=dto.getEmail();
         this.address=dto.getAddress();

@@ -38,6 +38,7 @@
 		<jwt.version>0.12.5</jwt.version>
 		<commons.version>3.14.0</commons.version>
 		<minio.version>8.5.6</minio.version>
+		<lettuce.version>6.3.2.RELEASE</lettuce.version>
 	</properties>
 
 	<!-- 声明有哪些子模块 -->
@@ -48,6 +49,7 @@
 		<module>product</module>
 		<module>order</module>
 		<module>card</module>
+		<module>middleware</module>
 	</modules>
 
 
@@ -110,6 +112,11 @@
 				<groupId>io.minio</groupId>
 				<artifactId>minio</artifactId>
 				<version>${minio.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.lettuce</groupId>
+				<artifactId>lettuce-core</artifactId>
+				<version>${lettuce.version}</version> <!-- 请检查最新版本 -->
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

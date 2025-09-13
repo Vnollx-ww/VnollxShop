@@ -5,8 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class UpdatePasswordDTO implements Serializable {
-    private Long id;
+public class UpdatePasswordDTO{
     private String oldPwd;
     private String newPwd;
 }

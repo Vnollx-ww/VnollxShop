@@ -1,6 +1,12 @@
 server:
   port: 8080
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   application:
     name: gateway-service # 服务名称 表示这个服务
   cloud:
@@ -76,7 +82,18 @@ spring:
               args:
                 retries: 3
                 series: SERVER_ERROR
+        # 产品服务路由 - 需要认证
+        - id: middleware-service
+          uri: lb://middleware-service
+          predicates:
+            - Path=/api/middleware/**
+          filters:
 
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 25
+                redis-rate-limiter.burstCapacity: 50
+                redis-rate-limiter.requestedTokens: 1
         # 健康检查路由 - 直接放行
         - id: health-check
           uri: lb://gateway-service

@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class CreateOrderDTO {
-    private String uid;
     private List<OrderItemDTO> items;
     private Double totalCost;
     private String consignee;     // 收货人
