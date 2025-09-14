@@ -36,17 +36,18 @@ VnollxShop 是一个基于 Spring Cloud Alibaba 微服务架构开发的现代�
 
 ### 后端技术
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
+| 技术 | 版本         | 说明 |
+|------|------------|------|
 | Spring Cloud Alibaba | 2021.0.3.0 | 微服务框架 |
-| Spring Boot | 2.7.0 | 基础框架 |
-| Spring Cloud Gateway | 2021.0.3 | API 网关 |
-| Nacos | 2.1.0 | 服务注册与配置中心 |
-| Sentinel | 1.8.4 | 流量控制和熔断 |
-| MyBatis Plus | 3.5.2 | ORM 框架 |
-| MySQL | 8.0 | 关系型数据库 |
-| Redis | 6.0 | 缓存数据库 |
-| Docker | 20.10+ | 容器化部署 |
+| Spring Boot | 2.7.0      | 基础框架 |
+| Spring Cloud Gateway | 2021.0.3   | API 网关 |
+| Nacos | 2.1.0      | 服务注册与配置中心 |
+| Sentinel | 1.8.4      | 流量控制和熔断 |
+| RocketMQ | 5.3.0      | 消息队列，异步削峰 |
+| MyBatis Plus | 3.5.2      | ORM 框架 |
+| MySQL | 8.0        | 关系型数据库 |
+| Redis | 6.0        | 缓存数据库 |
+| Docker | 20.10+     | 容器化部署 |
 
 ### 前端技术
 
@@ -84,6 +85,7 @@ VnollxShop 是一个基于 Spring Cloud Alibaba 微服务架构开发的现代�
 
 ### 📦 订单系统
 - **订单创建**：支持直接购买和购物车下单
+- **异步削峰**：使用RocketMQ实现订单异步处理
 - **订单状态**：完整的订单状态流转
 - **订单查询**：用户订单历史查询
 - **收货管理**：收货地址管理
@@ -98,6 +100,12 @@ VnollxShop 是一个基于 Spring Cloud Alibaba 微服务架构开发的现代�
 - **多种支付**：支持支付宝、微信支付
 - **支付回调**：异步支付结果处理
 - **订单关联**：支付与订单状态同步
+
+### 🔧 中间件服务
+- **消息队列**：RocketMQ消息队列管理
+- **订单异步处理**：订单创建异步削峰处理
+- **缓存管理**：Redis缓存服务
+- **文件存储**：MinIO对象存储服务
 
 ## 🚀 快速开始
 
@@ -235,6 +243,19 @@ spring:
         file-extension: yaml
 ```
 
+### RocketMQ 配置
+
+```yaml
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: order_producer_group
+  consumer:
+    group: order_consumer_group
+  order:
+    topic: order_topic
+```
+
 ## 🐳 Docker 部署
 
 ### 使用 Docker Compose
@@ -259,13 +280,15 @@ docker build -t vnollx-shop-user ./user
 docker build -t vnollx-shop-product ./product
 docker build -t vnollx-shop-order ./order
 docker build -t vnollx-shop-card ./card
+docker build -t vnollx-shop-middleware ./middleware
 
 # 运行容器
 docker run -d --name gateway -p 8080:8080 vnollx-shop-gateway
 docker run -d --name user -p 8081:8081 vnollx-shop-user
 docker run -d --name product -p 8082:8082 vnollx-shop-product
-docker run -d --name order -p 8083:8083 vnollx-shop-order
-docker run -d --name card -p 8084:8084 vnollx-shop-card
+docker run -d --name order -p 8084:8084 vnollx-shop-order
+docker run -d --name card -p 8083:8083 vnollx-shop-card
+docker run -d --name middleware -p 8086:8086 vnollx-shop-middleware
 ```
 
 ## 📊 性能优化
@@ -284,6 +307,12 @@ docker run -d --name card -p 8084:8084 vnollx-shop-card
 - **接口限流**：Sentinel 流量控制
 - **熔断降级**：服务熔断保护
 - **异步处理**：耗时操作异步化
+
+### 消息队列优化
+- **异步削峰**：RocketMQ 订单异步处理
+- **消息重试**：失败消息自动重试机制
+- **死信队列**：异常消息死信处理
+- **批量消费**：提高消息处理效率
 
 ## 🤝 贡献指南
 
