@@ -122,7 +122,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
                 .sorted()
                 .collect(Collectors.toList());
 
-        if (deductList.size()==1&&deductList.get(0).getType().equals("1")){//说明是秒杀商品
+        if (deductList.size()==1&&deductList.get(0).getType()!=null&&deductList.get(0).getType().equals("1")){//说明是秒杀商品
             //走分布式锁
             Long pid=deductList.get(0).getProductId();
             Long quantity=deductList.get(0).getQuantity();
@@ -133,7 +133,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
             } else if (result == -2) {
                 throw new BusinessException("商品库存不足");
             }
-            logger.info("扣减成功，剩余库存: {}", result);
+            logger.info("扣减秒杀商品成功，剩余库存: {}", result);
+            return ;
         }
 
         List<Product> productList=this.baseMapper.lockProducts(productIds); // 加锁

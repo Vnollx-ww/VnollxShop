@@ -1,6 +1,7 @@
 package com.example.middleware.scheduled;
 
 import com.example.common.model.product.dto.LikeUpdateDTO;
+import com.example.common.model.product.dto.StockDeductDTO;
 import com.example.common.model.product.vo.ProductInfoVO;
 import com.example.middleware.feign.ProductFeignClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,7 +16,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -25,6 +28,7 @@ public class RedisScheduled {
     private final ProductFeignClient productFeignClient;
     private static final Logger logger = LoggerFactory.getLogger(RedisScheduled.class);
     private static final String LIKE_KEY_PREFIX = "like:";
+    private static final String PRODUCT_INFO_KEY_PREFIX = "product:";
     @Scheduled(fixedRate = 60000) // 固定延迟1分钟（60000毫秒）
     public void scheduleUpdateLikeCount() {
         logger.info("开始执行点赞数同步定时任务...");
@@ -117,6 +121,47 @@ public class RedisScheduled {
             logger.error("缓存预热任务执行失败: ", e);
         }
     }
+    @Scheduled(cron = "0 10 18 * * ?")//每天晚上秒杀后十分钟开始同步信息
+    public void executeAt1530() {
+        logger.info("定时任务执行：每天18:10，开始同步秒杀商品信息至数据库");
 
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(PRODUCT_INFO_KEY_PREFIX + "*")
+                .count(100) // 每次扫描100个
+                .build();
+        List<StockDeductDTO> dtoList=new ArrayList<>();
+        List<ProductInfoVO> productInfoVOList = productFeignClient.getProductList(
+                null, null, null, null, "2"
+        ).getData();
+        Map<String,Long> stockMap=new HashMap<>();
+        for (ProductInfoVO vo:productInfoVOList){
+            stockMap.put(vo.getId(),vo.getStock());
+        }
+        // 使用SCAN迭代获取所有匹配的键
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+                // 提取ID（去掉"product:"前缀）
+                Long pid = Long.parseLong(key.substring(PRODUCT_INFO_KEY_PREFIX.length()));
+
+                String jsonProductInfo = redisTemplate.opsForValue().get(key);
+
+                if (jsonProductInfo!=null){
+                    try {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        ProductInfoVO vo = objectMapper.readValue(jsonProductInfo, ProductInfoVO.class);
+                        StockDeductDTO dto=new StockDeductDTO(Long.parseLong(vo.getId()),stockMap.get(vo.getId())-vo.getStock(),"0");
+                        dtoList.add(dto);
+                    } catch (JsonProcessingException e) {
+                        logger.error("JSON反序列化失败: {}", e.getMessage());
+                    }
+                }
+            }
+        }
+        if (!dtoList.isEmpty()){
+            productFeignClient.deductStock(dtoList);
+        }
+        logger.info("商品同步秒杀商品信息至数据库完成，共处理 {} 个商品", productInfoVOList.size());
+    }
 
 }

@@ -42,7 +42,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
     @Override
     @Transactional
     public void createOrder(CreateOrderDTO dto,Long uid) {
-
         // 开始生成订单
 
         //从购物车删除
@@ -97,13 +96,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
 
     @Override
     public List<OrderVO> getOrderList(Long uid) {
-        QueryWrapper<Order> orderQueryWrapper=new QueryWrapper<>();
-        orderQueryWrapper.eq("uid",uid);
-        List<Order> orderList=this.list(orderQueryWrapper);
+        QueryWrapper<Order> orderQueryWrapper = new QueryWrapper<>();
+        orderQueryWrapper.eq("uid", uid)
+                .orderByDesc("create_time"); // 按创建时间倒序，最新的在前
+        List<Order> orderList = this.list(orderQueryWrapper);
+
         if (CollectionUtils.isEmpty(orderList)) {
             return null;
         }
-
         // 2. 批量获取所有订单ID
         List<Long> orderIds = orderList.stream()
                 .map(Order::getId)

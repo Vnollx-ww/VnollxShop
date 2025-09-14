@@ -14,4 +14,5 @@ public class OrderItemDTO {
     private Double unitPrice;
 
     private String productName;
+    private String cover;
 }

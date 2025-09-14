@@ -17,6 +17,7 @@ public class OrderItem {
     private Long number;     // 购买数量
     private Double cost;     // 该商品的总花费
     private Double unitPrice;// 商品单价
+    private String cover; //商品封面
     public OrderItem(){}
     public OrderItem(OrderItemDTO dto, Long oid){
         this.cost=dto.getUnitPrice()*dto.getNumber();
@@ -25,5 +26,6 @@ public class OrderItem {
         this.number=dto.getNumber();
         this.productName=dto.getProductName();
         this.unitPrice=dto.getUnitPrice();
+        this.cover=dto.getCover();
     }
 }

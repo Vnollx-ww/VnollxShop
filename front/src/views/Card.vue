@@ -117,7 +117,8 @@ export default {
             pid: String(i.id),
             number: i.number,
             unitPrice: i.unitPrice,
-            productName: i.productName
+            productName: i.productName,
+            cover: i.cover
           }))),
           totalCost: this.total,
           consignee: this.order.consignee,

@@ -275,7 +275,8 @@ export default {
               pid: String(this.detail.id),
               number: this.buyNum,
               unitPrice: this.detail.price,
-              productName: this.detail.name
+              productName: this.detail.name,
+              cover: this.detail.cover
             }],
             totalCost: this.detail.price * this.buyNum,
             consignee: this.orderForm.consignee,

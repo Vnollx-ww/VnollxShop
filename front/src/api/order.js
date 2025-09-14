@@ -15,6 +15,7 @@ export function createOrder(data){
                 if (item.number !== undefined) form.append(`items[${idx}].number`, item.number)
                 if (item.unitPrice !== undefined) form.append(`items[${idx}].unitPrice`, item.unitPrice)
                 if (item.productName !== undefined) form.append(`items[${idx}].productName`, String(item.productName))
+                if (item.cover !== undefined) form.append(`items[${idx}].cover`, String(item.cover))
             })
         } else {
             form.append(key, String(value))

@@ -39,6 +39,7 @@
 		<commons.version>3.14.0</commons.version>
 		<minio.version>8.5.6</minio.version>
 		<lettuce.version>6.3.2.RELEASE</lettuce.version>
+		<rocketmq.version>5.3.3</rocketmq.version>
 	</properties>
 
 	<!-- 声明有哪些子模块 -->
@@ -117,6 +118,11 @@
 				<groupId>io.lettuce</groupId>
 				<artifactId>lettuce-core</artifactId>
 				<version>${lettuce.version}</version> <!-- 请检查最新版本 -->
+			</dependency>
+			<dependency>
+				<groupId>org.apache.rocketmq</groupId>
+				<artifactId>rocketmq-client</artifactId>
+				<version>${rocketmq.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

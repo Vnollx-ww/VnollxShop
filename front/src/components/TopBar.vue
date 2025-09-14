@@ -40,6 +40,12 @@
         <el-form-item label="昵称">
           <el-input v-model="form.name" />
         </el-form-item>
+        <el-form-item label="账户余额">
+          <div class="balance-display">
+            <span class="balance-amount">¥ {{ user.balance || 0 }}</span>
+            <el-button type="text" size="small" @click="goToRecharge" class="recharge-link">充值</el-button>
+          </div>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="saving" @click="saveProfile">保存</el-button>
         </el-form-item>
@@ -118,6 +124,10 @@ export default {
         this.$router.replace('/login')
       }
     },
+    goToRecharge(){
+      this.showProfile = false
+      this.showRecharge = true
+    },
     async saveProfile(){
       this.saving = true
       try{
@@ -170,10 +180,14 @@ export default {
         const { data } = await recharge({ channel: this.channel, amount: this.rechargeAmount })
         this.$message.success('充值成功')
         this.showRecharge = false
+        // 刷新用户信息以更新余额
+        await this.fetchMe()
       }catch(e){
         // 显示后端返回的具体错误信息
         const errorMessage = e.message || '充值失败，请重试'
         this.$message.error(errorMessage)
+      }finally{
+        this.paying = false
       }
     }
   }
@@ -198,6 +212,10 @@ export default {
 .channels{ margin: 12px 0; }
 .avatar-upload{ display:flex; align-items:center; gap:12px; }
 .avatar-preview{ width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 1px solid #e9eef3; }
+.balance-display{ display:flex; align-items:center; gap:12px; }
+.balance-amount{ font-size: 18px; font-weight: bold; color: #1890ff; }
+.recharge-link{ color: #1890ff; padding: 0; }
+.recharge-link:hover{ color: #40a9ff; }
 </style>
 
 
