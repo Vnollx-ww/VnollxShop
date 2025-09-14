@@ -1,5 +1,6 @@
 package com.example.user.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -29,6 +30,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     private final OssFeignClient ossFeignClient;
     private static final String bucket ="user";
     @Override
+    //@DS("slave")
     public UserInfoVO getUserInfoById(Long uid) {
         User user=this.getById(uid);
         if (user==null){
@@ -41,6 +43,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     }
 
     @Override
+    //@DS("slave")
     public UserInfoVO getUserInfoByEmail(String email) {
         QueryWrapper<User> wrapper=new QueryWrapper<>();
         wrapper.eq("email",email);
@@ -117,6 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     }
 
     @Override
+    //@DS("slave")
     public String login(LoginDTO dto)  {
         QueryWrapper<User> wrapper=new QueryWrapper<>();
         wrapper.eq("email",dto.getEmail());
@@ -136,6 +140,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     }
 
     @Override
+    //@DS("slave")
     public Double getBalance(Long uid) {
         User user=this.getById(uid);
         if (user==null){

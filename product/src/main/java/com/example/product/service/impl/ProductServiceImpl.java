@@ -1,6 +1,7 @@
 package com.example.product.service.impl;
 
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -41,6 +42,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     private BloomFilter bloomFilter;
     private final RedisFeignClient redisFeignClient;
     @Override
+    //@DS("slave")
     public ProductInfoVO getProductInfo( Long uid,Long pid) {
         //布隆过滤器筛选
         if (!bloomFilter.contains(String.valueOf(pid))){
@@ -81,6 +83,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     }
 
     @Override
+    //@DS("slave")
     public List<ProductInfoVO> getProductList(
             List<Long> idList,String keyword,String category,
             String sortType,String type
@@ -186,6 +189,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper,Product> imple
     }
 
     @Override
+    //@DS("slave")
     public List<String> getCategoryList() {
         QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
         // 只查询category字段，并且去重

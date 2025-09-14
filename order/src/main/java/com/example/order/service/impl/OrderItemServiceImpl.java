@@ -25,6 +25,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
     }
 
     @Override
+    //@DS("slave")
     public List<OrderItem> getOrderItemList(List<Long> orderIds) {
         if (CollectionUtils.isEmpty(orderIds)) {
             return Collections.emptyList();
@@ -36,6 +37,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
     }
 
     @Override
+    //@DS("slave")
     public OrderItemForm getOrderItemInfo(Long oiid) {
         OrderItemForm orderItemForm=new OrderItemForm();
         BeanUtils.copyProperties(this.getById(oiid),orderItemForm);
@@ -43,6 +45,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
     }
 
     @Override
+    //@DS("slave")
     public List<OrderItemForm> getOrderItemListByOrderIds(List<Long> orderIds) {
         if (CollectionUtils.isEmpty(orderIds)) {
             return Collections.emptyList();

@@ -35,6 +35,7 @@ public class ProductLikeServiceImpl extends ServiceImpl<ProductLikeMapper, Produ
     }
 
     @Override
+    //@DS("slave")
     public Boolean judgeIsLike(Long uid, Long pid) {
         QueryWrapper<ProductLike> wrapper=new QueryWrapper<>();
         wrapper.eq("pid",pid).eq("uid",uid);

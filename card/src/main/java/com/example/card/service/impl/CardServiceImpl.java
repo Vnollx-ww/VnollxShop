@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CardServiceImpl extends ServiceImpl<CardItemMapper,CardItem> implements CardService {
     @Override
+    //@DS("slave")
     public List<CardItemVO> getCardItemList(Long uid) {
         QueryWrapper<CardItem> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("uid",uid);
@@ -39,6 +40,7 @@ public class CardServiceImpl extends ServiceImpl<CardItemMapper,CardItem> implem
     }
 
     @Override
+    //@DS("slave")
     public Long getCardItemListCount(Long uid) {
         QueryWrapper<CardItem> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("uid",uid);

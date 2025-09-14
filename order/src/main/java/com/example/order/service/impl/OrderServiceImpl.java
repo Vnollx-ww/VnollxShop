@@ -106,6 +106,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
     }
 
     @Override
+    //@DS("slave")
     public List<OrderVO> getOrderList(Long uid) {
         QueryWrapper<Order> orderQueryWrapper = new QueryWrapper<>();
         orderQueryWrapper.eq("uid", uid)
