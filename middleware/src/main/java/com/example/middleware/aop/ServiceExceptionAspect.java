@@ -37,11 +37,6 @@ public class ServiceExceptionAspect {
             logger.error("空指针异常 - {}.{}: {}", className, methodName, e.getMessage(), e);
             throw new BusinessException("系统数据异常，请联系管理员");
 
-        } catch (SQLException e) {
-            // 数据库相关异常
-            logger.error("数据库异常 - {}.{}: {}", className, methodName, e.getMessage(), e);
-            throw new BusinessException("数据库操作失败，请稍后重试");
-
         } catch (IllegalArgumentException e) {
             // 参数非法异常
             logger.warn("参数异常 - {}.{}: {}", className, methodName, e.getMessage());

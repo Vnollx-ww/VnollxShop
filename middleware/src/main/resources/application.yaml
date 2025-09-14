@@ -14,4 +14,5 @@ spring:
       - optional:nacos:${spring.application.name}.yaml
       - optional:nacos:redis.yaml?group=DEFAULT_GROUP  # 显式加载 redis.yaml
       - optional:nacos:feign.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
-      - optional:nacos:minio.yaml?group=DEFAULT_GROUP  # 显式加载 feign.yaml
+      - optional:nacos:minio.yaml?group=DEFAULT_GROUP  # 显式加载 minio.yaml
+      - optional:nacos:rocketmq.yaml?group=DEFAULT_GROUP  # 显式加载 rocketmq.yaml

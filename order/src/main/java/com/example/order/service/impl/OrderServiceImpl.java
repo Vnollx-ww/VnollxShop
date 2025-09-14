@@ -17,12 +17,16 @@ import com.example.common.result.Result;
 import com.example.order.entity.Order;
 import com.example.order.entity.OrderItem;
 import com.example.order.feign.CardFeignClient;
+import com.example.order.feign.middleware.MqFeignClient;
 import com.example.order.mapper.OrderMapper;
 import com.example.order.service.OrderItemService;
 import com.example.order.feign.ProductFeignClient;
 import com.example.order.feign.UserFeignClient;
 import com.example.order.service.OrderService;
+import com.example.product.service.impl.ProductServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,8 +39,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements OrderService {
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
     private final UserFeignClient userFeignClient;
     private final ProductFeignClient productFeignClient;
+    private final MqFeignClient mqFeignClient;
     private final CardFeignClient cardFeignClient;
     private final OrderItemService orderItemService;
     @Override
@@ -72,12 +78,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper,Order> implements 
         if (stockResult.getCode()!=200){
             throw new BusinessException(stockResult.getMessage());
         }
+        dto.setUid(String.valueOf(uid));
+        mqFeignClient.createOrderMessage(dto);
+        logger.info("创建订单消息已发给RocketMQ,接下来交给RocketMQ处理");
+    }
 
-        //生成订单
-        Order order=new Order(dto,uid);
+    @Override
+    public void insertOrder(CreateOrderDTO dto) {
+        Order order=new Order(dto,Long.parseLong(dto.getUid()));
         this.save(order);
         QueryWrapper<Order> wrapper = new QueryWrapper<>();
-        wrapper.eq("uid", uid)
+        wrapper.eq("uid", Long.parseLong(dto.getUid()))
                 .orderByDesc("create_time") // 按创建时间降序
                 .last("LIMIT 1"); // 只取一条
 

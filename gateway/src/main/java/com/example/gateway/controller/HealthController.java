@@ -88,7 +88,7 @@ public class HealthController {
         
         // 检查关键服务的状态
         Map<String, Object> serviceStatus = new HashMap<>();
-        String[] criticalServices = {"data-service", "user-service", "product-service"};
+        String[] criticalServices = {"order-service", "user-service", "product-service","card-service","middleware-service"};
         
         for (String service : criticalServices) {
             try {

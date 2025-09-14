@@ -51,7 +51,7 @@ spring:
                 redis-rate-limiter.burstCapacity: 50
                 redis-rate-limiter.requestedTokens: 1
 
-        # 用户服务路由 - 需要认证
+        # 订单服务路由 - 需要认证
         - id: order-service
           uri: lb://order-service
           predicates:
@@ -67,6 +67,7 @@ spring:
               args:
                 retries: 3
                 series: SERVER_ERROR
+        # 购物车服务路由 - 需要认证
         - id: card-service
           uri: lb://card-service
           predicates:
@@ -82,7 +83,7 @@ spring:
               args:
                 retries: 3
                 series: SERVER_ERROR
-        # 产品服务路由 - 需要认证
+        # 中间件服务路由 - 需要认证
         - id: middleware-service
           uri: lb://middleware-service
           predicates:

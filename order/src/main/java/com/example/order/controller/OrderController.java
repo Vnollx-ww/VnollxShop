@@ -25,6 +25,11 @@ public class OrderController {
         orderService.createOrder(dto,uid);
         return Result.success();
     }
+    @PostMapping("/insert")
+    public Result<Void> insertOrder(@RequestBody CreateOrderDTO dto){
+        orderService.insertOrder(dto);
+        return Result.success();
+    }
     @DeleteMapping("/delete")
     public Result<Void> deleteOrder(@ModelAttribute DeleteOrderDTO dto){
         if (!NumberValidator.isInteger(dto.getOid())){

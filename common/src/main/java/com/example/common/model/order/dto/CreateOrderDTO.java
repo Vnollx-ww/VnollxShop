@@ -16,4 +16,5 @@ public class CreateOrderDTO {
     // 可选字段：支付信息
     private String remark;        // 订单备注
     private String type;
+    private String uid;
 }

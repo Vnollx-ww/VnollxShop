@@ -39,7 +39,7 @@
 		<commons.version>3.14.0</commons.version>
 		<minio.version>8.5.6</minio.version>
 		<lettuce.version>6.3.2.RELEASE</lettuce.version>
-		<rocketmq.version>5.3.3</rocketmq.version>
+		<rocketmq.version>2.3.0</rocketmq.version>
 	</properties>
 
 	<!-- 声明有哪些子模块 -->
@@ -121,8 +121,13 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.rocketmq</groupId>
-				<artifactId>rocketmq-client</artifactId>
+				<artifactId>rocketmq-spring-boot-starter</artifactId>
 				<version>${rocketmq.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.rocketmq</groupId>
+				<artifactId>rocketmq-client</artifactId>
+				<version>5.3.3</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
